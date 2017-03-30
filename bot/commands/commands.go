@@ -1,23 +1,18 @@
 package commands
 
-import (
-	"errors"
-	"fmt"
+import "github.com/sad0vnikov/wundergram/bot/dialog"
 
-	"gopkg.in/telegram-bot-api.v4"
-)
+//BuildConversationTree returns a bot conversation tree
+func BuildConversationTree() dialog.Tree {
+	dialogRoot := dialog.NewConversationTreeNode(start)
 
-var availableCommands = map[string]func(*tgbotapi.Message, *tgbotapi.BotAPI){
-	"start": start,
-}
+	enablingNotificationsNode := dialog.NewConversationTreeNode(enableDailyNotifications).
+		WithKeywords([]string{"send"}).
+		WithGoBackKeywords([]string{"forget", "cancel"})
 
-//GetHandler returns command handler by command name
-func GetHandler(command string) (func(*tgbotapi.Message, *tgbotapi.BotAPI), error) {
-	cmd := availableCommands[command]
-	if cmd == nil {
-		errorMessage := fmt.Sprintf("unknown command %v", command)
-		return nil, errors.New(errorMessage)
-	}
+	dialogRoot.AddChild(&enablingNotificationsNode)
 
-	return cmd, nil
+	tree := dialog.NewConversationTree(&dialogRoot)
+
+	return tree
 }

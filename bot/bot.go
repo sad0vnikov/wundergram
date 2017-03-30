@@ -4,12 +4,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/sad0vnikov/wundergram/bot/commands"
+	"github.com/sad0vnikov/wundergram/bot/dialog"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
+var dialogTreeProcessor dialog.TreeProcessor
+
 //Init func Initializes telegram bot
-func Init(token string) {
+func Init(token string, dialogTree dialog.Tree) {
+
+	dialogTreeProcessor = dialog.NewTreeProcessor(&dialogTree)
+
 	bot, err := tgbotapi.NewBotAPI(token)
 
 	if err != nil {
@@ -29,15 +34,14 @@ func Init(token string) {
 		}
 
 		command := update.Message.Command()
-		if len(command) != 0 {
-			log.Printf("new command from %v: %v", update.Message.From.UserName, update.Message.Text)
-			h, err := commands.GetHandler(command)
-
-			if err == nil {
-				h(update.Message, bot)
-			}
+		if len(command) == 0 {
+			command = update.Message.Text
 		}
 
+		nextDialogNode := dialogTreeProcessor.GetNodeToMoveIn(update.Message, bot)
+
+		log.Printf("new message from %v: %v", update.Message.From.UserName, update.Message.Text)
+		nextDialogNode.Handler(update.Message, bot)
 	}
 }
 

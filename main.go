@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/sad0vnikov/wundergram/bot"
+	"github.com/sad0vnikov/wundergram/bot/commands"
 	"github.com/sad0vnikov/wundergram/callbacklistener"
 )
 
@@ -13,5 +14,7 @@ func main() {
 		panic("telegaram token is not set")
 	}
 	go callbacklistener.Init()
-	bot.Init(token)
+
+	dialogTree := commands.BuildConversationTree()
+	bot.Init(token, dialogTree)
 }
