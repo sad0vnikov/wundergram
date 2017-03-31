@@ -1,14 +1,40 @@
 package commands
 
-import "gopkg.in/telegram-bot-api.v4"
+import (
+	"strconv"
+
+	"gopkg.in/telegram-bot-api.v4"
+)
 
 func enableDailyNotifications(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
-	buttonRows := make([]tgbotapi.KeyboardButton, 5)
+	buttonRows := make([][]tgbotapi.KeyboardButton, 0)
 
-	keyboard := tgbotapi.NewReplyKeyboard(buttonRows)
+	timeButtons := [24]string{}
+	for i := 0; i <= 23; i++ {
+		timeButtonText := strconv.Itoa(i) + ":00"
+		if i < 10 {
+			timeButtonText = "0" + timeButtonText
+		}
+		timeButtons[i] = timeButtonText
+	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, "When should I send you a daily notification?")
+	rowWidth := 4
+	for i := 0; i <= 23; i += rowWidth {
+		buttons := make([]tgbotapi.KeyboardButton, 0)
+		for j := 0; j < rowWidth; j++ {
+			buttons = append(buttons, tgbotapi.NewKeyboardButton(timeButtons[i+j]))
+		}
+		buttonRows = append(buttonRows, tgbotapi.NewKeyboardButtonRow(buttons...))
+	}
+
+	buttonRows = append(buttonRows, tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Forget it. I changed my mind"),
+	))
+
+	keyboard := tgbotapi.NewReplyKeyboard(buttonRows...)
+
+	msg := tgbotapi.NewMessage(message.Chat.ID, "When should I send you a daily notification? Choose a time a enter a more precise time, i.e. '13:25'")
 	msg.ReplyMarkup = keyboard
 	bot.Send(msg)
 
