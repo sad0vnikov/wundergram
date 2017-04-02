@@ -8,12 +8,12 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-var dialogTreeProcessor dialog.TreeProcessor
+var dialogTreeProcessor dialog.Processor
 
 //Init func Initializes telegram bot
 func Init(token string, dialogTree dialog.Tree) {
 
-	dialogTreeProcessor = dialog.NewTreeProcessor(&dialogTree)
+	dialogTreeProcessor = dialog.NewProcessor(&dialogTree)
 
 	bot, err := tgbotapi.NewBotAPI(token)
 
@@ -41,7 +41,9 @@ func Init(token string, dialogTree dialog.Tree) {
 		nextDialogNode := dialogTreeProcessor.GetNodeToMoveIn(update.Message, bot)
 
 		log.Printf("new message from %v: %v", update.Message.From.UserName, update.Message.Text)
-		nextDialogNode.Handler(update.Message, bot)
+
+		dialogTreeProcessor.RunNodeHandler(nextDialogNode, update.Message, bot)
+
 	}
 }
 

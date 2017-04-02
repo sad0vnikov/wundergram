@@ -3,10 +3,12 @@ package commands
 import (
 	"strconv"
 
+	"github.com/sad0vnikov/wundergram/storage/daily_notifications"
+
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-func enableDailyNotifications(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+func showDailyNotificationsTimeSelector(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 	buttonRows := make([][]tgbotapi.KeyboardButton, 0)
 
@@ -37,5 +39,16 @@ func enableDailyNotifications(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, "When should I send you a daily notification? Choose a time a enter a more precise time, i.e. '13:25'")
 	msg.ReplyMarkup = keyboard
 	bot.Send(msg)
+
+}
+
+func enableDailyNotifications(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	userID := message.From.ID
+	notificationTime := message.Text
+	err := daily_notifications.EnableNotificationsForUser(userID, notificationTime)
+	if err == nil {
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ok. I'll send you a daily notification at "+notificationTime)
+		bot.Send(msg)
+	}
 
 }

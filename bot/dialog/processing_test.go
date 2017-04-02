@@ -82,6 +82,31 @@ func TestTraversingBackWithoutParent(t *testing.T) {
 	}
 }
 
+func TestRegexTraversing(t *testing.T) {
+	treeRoot := NewConversationTreeNode(func(m *tgbotapi.Message, b *tgbotapi.BotAPI) {})
+
+	childOne := NewConversationTreeNode(func(m *tgbotapi.Message, b *tgbotapi.BotAPI) {}).
+		WithRegexp(`\w{3} \d{3}`)
+
+	treeRoot.AddChild(&childOne)
+
+	tree := NewConversationTree(&treeRoot)
+
+	treeProcessor := NewTreeProcessor(&tree)
+
+	message := makeMessage("abc 123")
+
+	nodeToMoveIn := treeProcessor.GetNodeToMoveIn(&message, nil)
+
+	if nodeToMoveIn == nil {
+		t.Error("got nil node")
+
+	}
+	if nodeToMoveIn != &childOne {
+		t.Errorf("got wrong tree child, expected %v, got %v", &childOne, nodeToMoveIn)
+	}
+}
+
 func makeMessage(text string) tgbotapi.Message {
 	return tgbotapi.Message{Text: text, From: &tgbotapi.User{ID: 1}}
 }

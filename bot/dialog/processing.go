@@ -4,46 +4,38 @@ import (
 	"regexp"
 
 	"strings"
+	"sync"
 
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-//TreeProcessor calculates users traverses by the dialog tree
-type TreeProcessor interface {
+//Processor calculates users traverses by the dialog tree
+type Processor interface {
 	GetNodeToMoveIn(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) *TreeNode
+	RunNodeHandler(node *TreeNode, msg *tgbotapi.Message, bot *tgbotapi.BotAPI)
 }
 
-//TreePositions stores users posions on the dialog tree
-type TreePositions struct {
+//TreeProcessor stores users posions on the dialog tree
+type TreeProcessor struct {
 	tree          *Tree
 	userPositions map[int]*TreeNode
 }
 
-//NewTreeProcessor initializes new tree processor
-func NewTreeProcessor(tree *Tree) TreeProcessor {
-	return &TreePositions{tree: tree, userPositions: map[int]*TreeNode{}}
+//NewProcessor initializes new tree processor
+func NewProcessor(tree *Tree) Processor {
+	return &TreeProcessor{tree: tree, userPositions: map[int]*TreeNode{}}
 }
 
 //GetNodeToMoveIn takes user message and traverses user by the dialog tree
-func (treeProcessor *TreePositions) GetNodeToMoveIn(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) *TreeNode {
+func (processor *TreeProcessor) GetNodeToMoveIn(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) *TreeNode {
 	msgText := msg.Text
 	messageWords := strings.Split(msgText, " ")
 
-	curNode := treeProcessor.findCurrentNodeForUser(msg.From.ID)
+	curNode := processor.findCurrentNodeForUser(msg.From.ID)
 	var nodeToMoveIn *TreeNode
-	for _, w := range messageWords {
-
-		w = clearMessageWord(w)
-		if curNode.parent != nil && curNode.parent.keywords[w] == true {
-			return curNode.parent
-		}
-
-		for _, child := range curNode.children {
-			if child.keywords[w] == true {
-				nodeToMoveIn = child
-				break
-			}
-		}
+	nodeToMoveIn = findNodeByKeywords(curNode, processor.tree.Root, messageWords)
+	if nodeToMoveIn == nil {
+		nodeToMoveIn = findNodeByRegex(curNode, processor.tree.Root, msgText)
 	}
 
 	if nodeToMoveIn == nil {
@@ -53,6 +45,68 @@ func (treeProcessor *TreePositions) GetNodeToMoveIn(msg *tgbotapi.Message, bot *
 	return nodeToMoveIn
 }
 
+//RunNodeHandler moves user to node and runs a handler
+func (processor *TreeProcessor) RunNodeHandler(node *TreeNode, msg *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	node.Handler(msg, bot)
+	processor.updateCurrentNodeForUser(msg.From.ID, node)
+}
+
+func findNodeByKeywords(curNode *TreeNode, treeRooteNode *TreeNode, messageWords []string) *TreeNode {
+	for _, w := range messageWords {
+
+		w = clearMessageWord(w)
+
+		if checkNodeHasKeyword(treeRooteNode, w) {
+			return treeRooteNode
+		}
+
+		if curNode.Parent != nil && checkNodeHasKeyword(curNode.Parent, w) {
+			return curNode.Parent
+		}
+
+		for _, child := range curNode.Children {
+			if checkNodeHasKeyword(child, w) {
+				return child
+			}
+		}
+	}
+	return nil
+}
+
+func checkNodeHasKeyword(node *TreeNode, keyword string) bool {
+	return node.keywords[keyword] == true
+}
+
+func findNodeByRegex(curNode *TreeNode, treeRootNode *TreeNode, message string) *TreeNode {
+
+	if checkNodeByRegex(treeRootNode, message) {
+		return treeRootNode
+	}
+
+	if curNode.Parent != nil && checkNodeByRegex(curNode.Parent, message) {
+		return curNode.Parent
+	}
+
+	for _, v := range curNode.Children {
+		if checkNodeByRegex(v, message) {
+			return v
+		}
+	}
+
+	return nil
+}
+
+func checkNodeByRegex(node *TreeNode, message string) bool {
+	if len(node.regexp) > 0 {
+		r := regexp.MustCompile(node.regexp)
+		if r.MatchString(message) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func clearMessageWord(word string) string {
 	r := regexp.MustCompile(`\P{L}`)
 
@@ -60,16 +114,19 @@ func clearMessageWord(word string) string {
 	return strings.ToLower(word)
 }
 
-func (treeProcessor *TreePositions) findCurrentNodeForUser(userID int) *TreeNode {
-	curNode := treeProcessor.userPositions[userID]
+func (processor *TreeProcessor) findCurrentNodeForUser(userID int) *TreeNode {
+	curNode := processor.userPositions[userID]
 	if curNode == nil {
-		curNode = treeProcessor.tree.root
-		treeProcessor.updateCurrentNodeForUser(userID, curNode)
+		curNode = processor.tree.Root
+		processor.updateCurrentNodeForUser(userID, curNode)
 	}
 
 	return curNode
 }
 
-func (treeProcessor *TreePositions) updateCurrentNodeForUser(userID int, node *TreeNode) {
-	treeProcessor.userPositions[userID] = node
+func (processor *TreeProcessor) updateCurrentNodeForUser(userID int, node *TreeNode) {
+	mutex := sync.Mutex{}
+	mutex.Lock()
+	processor.userPositions[userID] = node
+	mutex.Unlock()
 }

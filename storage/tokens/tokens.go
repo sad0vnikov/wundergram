@@ -1,6 +1,8 @@
 package tokens
 
 import (
+	"strconv"
+
 	"github.com/boltdb/bolt"
 	"github.com/sad0vnikov/wundergram/db"
 )
@@ -15,7 +17,7 @@ func Put(userID int, token string) error {
 			return err
 		}
 
-		err = b.Put([]byte(string(userID)), []byte(token))
+		err = b.Put([]byte(strconv.Itoa(userID)), []byte(token))
 		return err
 	})
 }
