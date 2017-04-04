@@ -53,7 +53,7 @@ func TestTraversingForward(t *testing.T) {
 
 	tree := NewConversationTree(&treeRoot)
 
-	treeProcessor := NewTreeProcessor(&tree)
+	treeProcessor := NewProcessor(&tree)
 
 	message := makeMessage("green eggs")
 
@@ -73,7 +73,7 @@ func TestTraversingBackWithoutParent(t *testing.T) {
 		WithGoBackKeywords([]string{"hello"})
 
 	tree := NewConversationTree(&treeRoot)
-	treeProcessor := NewTreeProcessor(&tree)
+	treeProcessor := NewProcessor(&tree)
 	message := makeMessage("hello, world!")
 	nodeToMoveIn := treeProcessor.GetNodeToMoveIn(&message, nil)
 
@@ -92,7 +92,7 @@ func TestRegexTraversing(t *testing.T) {
 
 	tree := NewConversationTree(&treeRoot)
 
-	treeProcessor := NewTreeProcessor(&tree)
+	treeProcessor := NewProcessor(&tree)
 
 	message := makeMessage("abc 123")
 

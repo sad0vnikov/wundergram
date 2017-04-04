@@ -12,8 +12,8 @@ import (
 
 //DailyNotificationConfig is a number of preferences for user's daily tasks notificatons
 type DailyNotificationConfig struct {
-	userID                int
-	notificationTimestamp int //Notification time is stored as as number of seconds from the beginning of the day
+	UserID                int
+	NotificationTimestamp int //Notification time is stored as as number of seconds from the beginning of the day
 }
 
 var dailyNotificationsBucketName = []byte("daily_notifications")
@@ -26,7 +26,7 @@ func EnableNotificationsForUser(userID int, notificationTime string) error {
 		return err
 	}
 
-	return Save(DailyNotificationConfig{userID: userID, notificationTimestamp: dayOffset})
+	return Save(DailyNotificationConfig{UserID: userID, NotificationTimestamp: dayOffset})
 }
 
 func stringTimeToDayOffset(notificationTime string) (int, error) {
@@ -58,7 +58,7 @@ func Save(config DailyNotificationConfig) error {
 		if err != nil {
 			return err
 		}
-		return b.Put([]byte(strconv.Itoa(config.userID)), configJSON)
+		return b.Put([]byte(strconv.Itoa(config.UserID)), configJSON)
 	})
 }
 
