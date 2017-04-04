@@ -1,7 +1,7 @@
 package wservice
 
 import (
-	"fmt"
+	"log"
 	"math/rand"
 	"testing"
 	"time"
@@ -9,24 +9,30 @@ import (
 	"github.com/sad0vnikov/wundergram/wunderlist/wobjects"
 )
 
-func TestFilteringTasksForToday(t *testing.T) {
-	nowtime := time.Now()
-	today := fmt.Sprintf("%d-%d-%d", nowtime.Year(), nowtime.Month(), nowtime.Day())
+func TestFilterTasksLessThanDate(t *testing.T) {
 
-	todayTask := makeTestTask("test03", today)
+	testDate := time.Date(2017, time.January, 2, 0, 0, 0, 0, time.UTC)
+
+	expectedTask := makeTestTask("test01", "2016-01-03")
+	log.Print(expectedTask)
+
 	testTasks := []wobjects.Task{
-		makeTestTask("test01", "2017-01-02"),
+		expectedTask,
 		makeTestTask("test02", "2017-03-01"),
-		todayTask,
+		makeTestTask("test03", "2017-03-05"),
 	}
 
-	filteredTasks := filterTasksForToday(testTasks)
-	if len(filteredTasks) != 1 {
-		t.Error("Too many tasks filtered")
+	filteredTasks := filterTasksLessThanDate(testDate, testTasks)
+	if len(filteredTasks) < 1 {
+		t.Error("Got an empty filtered tasks list")
 	}
 
-	if filteredTasks[0].Title != todayTask.Title {
-		t.Errorf("Got wrong task in filter: extected task %v, got %v", todayTask, filteredTasks[0])
+	if len(filteredTasks) > 1 {
+		t.Errorf("Too many tasks filtered: %#v", filteredTasks)
+	}
+
+	if filteredTasks[0].Title != expectedTask.Title {
+		t.Errorf("Got wrong task in filter: extected task %v, got %v", expectedTask, filteredTasks[0])
 	}
 
 }

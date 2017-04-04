@@ -13,8 +13,8 @@ type List struct {
 
 //ListFromJSON parses given JSON and returns a List
 func ListFromJSON(j []byte) (List, error) {
-	var list List
-	err := json.Unmarshal(j, list)
+	list := List{}
+	err := json.Unmarshal(j, &list)
 	if err != nil {
 		return list, err
 	}
@@ -24,11 +24,11 @@ func ListFromJSON(j []byte) (List, error) {
 
 //ListArrayFromJSON parses given JSON and returns an array of List
 func ListArrayFromJSON(j []byte) ([]List, error) {
-	var list []List
-	err := json.Unmarshal(j, list)
+	lists := []List{}
+	err := json.Unmarshal(j, &lists)
 	if err != nil {
-		return list, err
+		return lists, err
 	}
 
-	return list, nil
+	return lists, nil
 }

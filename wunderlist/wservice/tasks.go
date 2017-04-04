@@ -1,9 +1,9 @@
 package wservice
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/sad0vnikov/wundergram/logger"
 	"github.com/sad0vnikov/wundergram/storage/tokens"
 	"github.com/sad0vnikov/wundergram/wunderlist"
 	"github.com/sad0vnikov/wundergram/wunderlist/wobjects"
@@ -13,11 +13,13 @@ import (
 func GetUserTodayTasks(userID int) ([]wobjects.Task, error) {
 	userToken, err := tokens.Get(userID)
 	if err != nil {
+		logger.Get("main").Error(err)
 		return nil, err
 	}
 
 	userTasks, err := wunderlist.GetAllTasks(userToken)
 	if err != nil {
+		logger.Get("main").Error(err)
 		return nil, err
 	}
 	todayTasks := filterTasksForToday(userTasks)
@@ -25,16 +27,20 @@ func GetUserTodayTasks(userID int) ([]wobjects.Task, error) {
 	return todayTasks, nil
 }
 
-func filterTasksForToday(tasks []wobjects.Task) []wobjects.Task {
-	todayTasks := make([]wobjects.Task, 0)
-	t := time.Now()
-	todayDate := fmt.Sprintf("%d-%d-%d", t.Year(), t.Month(), t.Day())
+func filterTasksLessThanDate(date time.Time, tasks []wobjects.Task) []wobjects.Task {
+	filteredTasks := make([]wobjects.Task, 0)
 
 	for _, task := range tasks {
-		if task.DueDate == todayDate {
-			todayTasks = append(todayTasks, task)
+		parsedTime, err := time.Parse("2006-01-02", task.DueDate)
+		if err == nil && parsedTime.Unix() < date.Unix() {
+			filteredTasks = append(filteredTasks, task)
 		}
 	}
 
-	return todayTasks
+	return filteredTasks
+}
+
+func filterTasksForToday(tasks []wobjects.Task) []wobjects.Task {
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	return filterTasksLessThanDate(tomorrow, tasks)
 }

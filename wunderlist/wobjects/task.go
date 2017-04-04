@@ -19,8 +19,8 @@ type Task struct {
 
 //TaskFromJSON parses a JSON and returns Task object
 func TaskFromJSON(j []byte) (Task, error) {
-	var task Task
-	err := json.Unmarshal(j, task)
+	task := Task{}
+	err := json.Unmarshal(j, &task)
 	if err != nil {
 		return task, err
 	}
@@ -30,11 +30,11 @@ func TaskFromJSON(j []byte) (Task, error) {
 
 //TaskArrayFromJSON parses a JSON and returns an array of Tasks
 func TaskArrayFromJSON(j []byte) ([]Task, error) {
-	var task []Task
-	err := json.Unmarshal(j, task)
+	tasks := make([]Task, 0)
+	err := json.Unmarshal(j, &tasks)
 	if err != nil {
-		return task, err
+		return tasks, err
 	}
 
-	return task, nil
+	return tasks, nil
 }

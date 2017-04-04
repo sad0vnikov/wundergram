@@ -8,6 +8,9 @@ import (
 func BuildConversationTree() dialog.Tree {
 	dialogRoot := dialog.NewConversationTreeNode(start)
 
+	showTodayTasks := dialog.NewConversationTreeNode(showTodayTasksCommand).
+		WithKeywords([]string{"today"})
+
 	showDailyNotificationsTimeSelector := dialog.NewConversationTreeNode(showDailyNotificationsTimeSelector).
 		WithKeywords([]string{"send"}).
 		WithGoBackKeywords([]string{"forget", "cancel"})
@@ -18,6 +21,7 @@ func BuildConversationTree() dialog.Tree {
 	showDailyNotificationsTimeSelector.AddChild(&enableDailyNotifications)
 
 	dialogRoot.AddChild(&showDailyNotificationsTimeSelector)
+	dialogRoot.AddChild(&showTodayTasks)
 
 	tree := dialog.NewConversationTree(&dialogRoot)
 

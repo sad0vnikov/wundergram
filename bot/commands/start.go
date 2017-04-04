@@ -34,6 +34,7 @@ func sendAuthorizedMessage(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msgText := "You were successfully authenticated. Now I can send you Wunderlist reminders"
 	keyboard := tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Send me daily notifications!")),
+		tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Show me my tasks for today")),
 	)
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)

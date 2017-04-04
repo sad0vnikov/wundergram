@@ -3,6 +3,7 @@ package wunderlist
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -39,7 +40,9 @@ func makeJSONRequest(url string, params map[string]string) (map[string]string, e
 func makeAPIRequest(resource, userToken string) ([]byte, error) {
 	client := &http.Client{}
 
-	req, _ := http.NewRequest(http.MethodGet, apiUrl+resource, nil)
+	requestURL := apiUrl + resource
+	logger.Get("main").Infof("making http request to %v", requestURL)
+	req, _ := http.NewRequest(http.MethodGet, requestURL, nil)
 	req.Header.Set("X-Access-Token", userToken)
 	req.Header.Set("X-Client-Id", clientID)
 	res, err := client.Do(req)
@@ -52,9 +55,17 @@ func makeAPIRequest(resource, userToken string) ([]byte, error) {
 
 	jsonBytes := []byte{}
 
-	req.Body.Read(jsonBytes)
+	buf := bytes.NewBuffer(jsonBytes)
+	_, readErr := buf.ReadFrom(res.Body)
+	if readErr != nil {
+		log.Print(err)
+		return nil, err
 
-	return jsonBytes, nil
+	}
+
+	logger.Get("main").Debugf("got response: %v", buf.String())
+
+	return buf.Bytes(), nil
 }
 
 //GetUserAccessToken returns OAuth access token
@@ -76,7 +87,7 @@ func GetUserAccessToken(authCode string) (string, error) {
 //GetLists returns an array of user's tasks lists
 func GetLists(userToken string) ([]wobjects.List, error) {
 
-	jsonResult, err := makeAPIRequest("/lists", userToken)
+	jsonResult, err := makeAPIRequest("lists", userToken)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +103,7 @@ func GetLists(userToken string) ([]wobjects.List, error) {
 //GetTasks returns all the tasks dedicated to user
 func GetTasks(listID int, userToken string) ([]wobjects.Task, error) {
 
-	jsonResult, err := makeAPIRequest("/tasks?list_id="+strconv.Itoa(listID), userToken)
+	jsonResult, err := makeAPIRequest("tasks?list_id="+strconv.Itoa(listID), userToken)
 	if err != nil {
 		return nil, err
 	}
