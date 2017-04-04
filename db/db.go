@@ -1,9 +1,8 @@
 package db
 
 import (
-	"log"
-
 	"github.com/boltdb/bolt"
+	"github.com/sad0vnikov/wundergram/logger"
 )
 
 var db *bolt.DB
@@ -12,7 +11,7 @@ var db *bolt.DB
 func Init() (*bolt.DB, error) {
 	const dbName = "wundergram.db"
 	conn, err := bolt.Open(dbName, 0600, nil)
-	log.Printf("connected to db %v", dbName)
+	logger.Get("main").Infof("connected to db %v", dbName)
 	db = conn
 	return conn, err
 }

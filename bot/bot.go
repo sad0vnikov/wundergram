@@ -1,10 +1,10 @@
 package bot
 
 import (
-	"log"
 	"os"
 
 	"github.com/sad0vnikov/wundergram/bot/dialog"
+	"github.com/sad0vnikov/wundergram/logger"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -21,7 +21,7 @@ func Init(token string, dialogTree dialog.Tree) {
 		panic(err)
 	}
 
-	log.Printf("Authorized on account %v", bot.Self.UserName)
+	logger.Get("main").Infof("Authorized on account %v", bot.Self.UserName)
 	u := tgbotapi.NewUpdate(0)
 
 	u.Timeout = 60
@@ -40,7 +40,7 @@ func Init(token string, dialogTree dialog.Tree) {
 
 		nextDialogNode := dialogTreeProcessor.GetNodeToMoveIn(update.Message, bot)
 
-		log.Printf("new message from %v: %v", update.Message.From.UserName, update.Message.Text)
+		logger.Get("main").Infof("new message from %v: %v", update.Message.From.UserName, update.Message.Text)
 
 		dialogTreeProcessor.RunNodeHandler(nextDialogNode, update.Message, bot)
 

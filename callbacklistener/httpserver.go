@@ -1,11 +1,11 @@
 package callbacklistener
 
 import (
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/sad0vnikov/wundergram/bot"
+	"github.com/sad0vnikov/wundergram/logger"
 	"github.com/sad0vnikov/wundergram/wunderlist"
 )
 
@@ -19,7 +19,7 @@ func Init() {
 	http.HandleFunc("/c", func(w http.ResponseWriter, r *http.Request) {
 		wunderlist.OnWundelistAuthCallback(w, r, bot.GetTelegramBotLink())
 	})
-	log.Printf("listening for Wundelist callback on :%v", port)
+	logger.Get("main").Infof("listening for Wundelist callback on :%v", port)
 
 	http.ListenAndServe(":"+port, nil)
 }

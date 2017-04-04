@@ -17,7 +17,7 @@ func RunDailyNotifications() {
 func checkDailyNotifications() {
 	// notifications, err := daily_notifications.GetAll()
 	// if err != nil {
-	// 	log.Panic("error getting notifiations list from db")
+	// 	logger.Get("main").Error("error getting notifiations list from db")
 	// 	return
 	// }
 	// for _, n := range notifications {

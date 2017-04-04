@@ -3,10 +3,10 @@ package wunderlist
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/sad0vnikov/wundergram/logger"
 	"github.com/sad0vnikov/wundergram/wunderlist/wobjects"
 )
 
@@ -18,7 +18,7 @@ func makeJSONRequest(url string, params map[string]string) (map[string]string, e
 
 	jsonToSend, err := json.Marshal(params)
 
-	log.Printf("making json request to %v: %v", url, string(jsonToSend))
+	logger.Get("main").Infof("making json request to %v: %v", url, string(jsonToSend))
 
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonToSend))
 	if err != nil {
@@ -30,7 +30,7 @@ func makeJSONRequest(url string, params map[string]string) (map[string]string, e
 	response := map[string]string{}
 
 	json.NewDecoder(resp.Body).Decode(&response)
-	log.Printf("got response: %v", response)
+	logger.Get("main").Debugf("got response: %v", response)
 
 	return response, nil
 }
