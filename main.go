@@ -6,6 +6,7 @@ import (
 	"github.com/sad0vnikov/wundergram/bot"
 	"github.com/sad0vnikov/wundergram/bot/commands"
 	"github.com/sad0vnikov/wundergram/callbacklistener"
+	"github.com/sad0vnikov/wundergram/tasks"
 )
 
 func main() {
@@ -16,5 +17,7 @@ func main() {
 	go callbacklistener.Init()
 
 	dialogTree := commands.BuildConversationTree()
-	bot.Init(token, dialogTree)
+	b := bot.Create(token)
+	go b.Init(dialogTree)
+	tasks.RunDailyNotifications(b)
 }

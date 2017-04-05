@@ -5,28 +5,47 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/sad0vnikov/wundergram/db"
+	"github.com/sad0vnikov/wundergram/util"
 )
 
 //DailyNotificationConfig is a number of preferences for user's daily tasks notificatons
 type DailyNotificationConfig struct {
 	UserID                int
+	ChatID                int64
 	NotificationTimestamp int //Notification time is stored as as number of seconds from the beginning of the day
+	LastTimeActivated     int64
 }
 
 var dailyNotificationsBucketName = []byte("daily_notifications")
 
+//CheckIsTimeToSend returns true if a time for sending notification already came
+func (notification DailyNotificationConfig) CheckIsTimeToSend(currentTime time.Time) bool {
+	currentTimestamp := currentTime.Unix()
+	dayStart := util.GetDayStart(currentTime).Unix()
+	currentDayOffset := currentTimestamp - dayStart
+	return currentDayOffset >= int64(notification.NotificationTimestamp)
+}
+
+//CheckWasSentToday returns true if notification was already sent today
+func (notification DailyNotificationConfig) CheckWasSentToday(currentTime time.Time) bool {
+	dayStart := util.GetDayStart(currentTime).Unix()
+
+	return notification.LastTimeActivated >= dayStart
+}
+
 //EnableNotificationsForUser saves user daily notification time
 //notificationTime param should be a time formatted as HH:MM
-func EnableNotificationsForUser(userID int, notificationTime string) error {
+func EnableNotificationsForUser(userID int, chatID int64, notificationTime string) error {
 	dayOffset, err := stringTimeToDayOffset(notificationTime)
 	if err != nil {
 		return err
 	}
 
-	return Save(DailyNotificationConfig{UserID: userID, NotificationTimestamp: dayOffset})
+	return Save(DailyNotificationConfig{UserID: userID, ChatID: chatID, NotificationTimestamp: dayOffset})
 }
 
 func stringTimeToDayOffset(notificationTime string) (int, error) {
@@ -64,13 +83,13 @@ func Save(config DailyNotificationConfig) error {
 
 //GetAll gets all the stored daily notification configs
 func GetAll() ([]DailyNotificationConfig, error) {
-	var result []DailyNotificationConfig
+	result := []DailyNotificationConfig{}
 	err := db.GetDB().View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(dailyNotificationsBucketName)
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			var nextConfig DailyNotificationConfig
-			err := json.Unmarshal(v, nextConfig)
+			err := json.Unmarshal(v, &nextConfig)
 			if err != nil {
 				return err
 			}
@@ -86,12 +105,12 @@ func GetAll() ([]DailyNotificationConfig, error) {
 
 //GetByUserID returns a daily notifications config for user
 func GetByUserID(userID int) (DailyNotificationConfig, error) {
-	var result DailyNotificationConfig
+	result := DailyNotificationConfig{}
 	err := db.GetDB().View(func(tx *bolt.Tx) error {
 		resJSON := tx.Bucket(dailyNotificationsBucketName).
 			Get([]byte(strconv.Itoa(userID)))
 
-		return json.Unmarshal(resJSON, result)
+		return json.Unmarshal(resJSON, &result)
 
 	})
 	return result, err

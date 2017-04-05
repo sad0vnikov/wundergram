@@ -45,7 +45,7 @@ func showDailyNotificationsTimeSelector(message *tgbotapi.Message, bot *tgbotapi
 func enableDailyNotifications(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	userID := message.From.ID
 	notificationTime := message.Text
-	err := daily_notifications.EnableNotificationsForUser(userID, notificationTime)
+	err := daily_notifications.EnableNotificationsForUser(userID, message.Chat.ID, notificationTime)
 	if err == nil {
 		msg := tgbotapi.NewMessage(message.Chat.ID, "Ok. I'll send you a daily notification at "+notificationTime)
 		bot.Send(msg)

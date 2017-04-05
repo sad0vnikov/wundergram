@@ -10,10 +10,13 @@ import (
 
 var dialogTreeProcessor dialog.Processor
 
-//Init func Initializes telegram bot
-func Init(token string, dialogTree dialog.Tree) {
+//Bot is a struct representing Bot state
+type Bot struct {
+	API *tgbotapi.BotAPI
+}
 
-	dialogTreeProcessor = dialog.NewProcessor(&dialogTree)
+//Create returns a new Bot
+func Create(token string) Bot {
 
 	bot, err := tgbotapi.NewBotAPI(token)
 
@@ -21,12 +24,23 @@ func Init(token string, dialogTree dialog.Tree) {
 		panic(err)
 	}
 
-	logger.Get("main").Infof("Authorized on account %v", bot.Self.UserName)
+	return Bot{API: bot}
+}
+
+//Init func Initializes telegram bot
+func (bot Bot) Init(dialogTree dialog.Tree) {
+
+	dialogTreeProcessor = dialog.NewProcessor(&dialogTree)
+
+	logger.Get("main").Infof("Authorized on account %#v", bot.API.Self.UserName)
 	u := tgbotapi.NewUpdate(0)
 
 	u.Timeout = 60
 
-	updates, err := bot.GetUpdatesChan(u)
+	updates, err := bot.API.GetUpdatesChan(u)
+	if err != nil {
+		panic(err)
+	}
 
 	for update := range updates {
 		if update.Message == nil {
@@ -38,11 +52,11 @@ func Init(token string, dialogTree dialog.Tree) {
 			command = update.Message.Text
 		}
 
-		nextDialogNode := dialogTreeProcessor.GetNodeToMoveIn(update.Message, bot)
+		nextDialogNode := dialogTreeProcessor.GetNodeToMoveIn(update.Message, bot.API)
 
 		logger.Get("main").Infof("new message from %v: %v", update.Message.From.UserName, update.Message.Text)
 
-		dialogTreeProcessor.RunNodeHandler(nextDialogNode, update.Message, bot)
+		dialogTreeProcessor.RunNodeHandler(nextDialogNode, update.Message, bot.API)
 
 	}
 }
