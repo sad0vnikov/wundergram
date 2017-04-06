@@ -49,6 +49,7 @@ func startRespondNeedAuth(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 		wunderlist.GetUserAuthLink(),
 	)
 	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(false)
 
 	bot.Send(msg)
 }
@@ -62,5 +63,6 @@ func startDoAuth(message *tgbotapi.Message, bot *tgbotapi.BotAPI, code string) {
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(false)
 	bot.Send(msg)
 }
