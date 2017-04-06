@@ -86,6 +86,9 @@ func GetAll() ([]DailyNotificationConfig, error) {
 	result := []DailyNotificationConfig{}
 	err := db.GetDB().View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(dailyNotificationsBucketName)
+		if b == nil {
+			return nil
+		}
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			var nextConfig DailyNotificationConfig
@@ -107,8 +110,11 @@ func GetAll() ([]DailyNotificationConfig, error) {
 func GetByUserID(userID int) (DailyNotificationConfig, error) {
 	result := DailyNotificationConfig{}
 	err := db.GetDB().View(func(tx *bolt.Tx) error {
-		resJSON := tx.Bucket(dailyNotificationsBucketName).
-			Get([]byte(strconv.Itoa(userID)))
+		b := tx.Bucket(dailyNotificationsBucketName)
+		if b == nil {
+			return nil
+		}
+		resJSON := b.Get([]byte(strconv.Itoa(userID)))
 
 		return json.Unmarshal(resJSON, &result)
 

@@ -27,6 +27,9 @@ func Get(userID int) (string, error) {
 	var token string
 	error := db.GetDB().View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketName)
+		if b == nil {
+			return nil
+		}
 		v := b.Get([]byte(string(userID)))
 		token = string(v)
 		return nil
