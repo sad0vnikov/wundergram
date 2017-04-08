@@ -56,7 +56,7 @@ func (bot Bot) Init(dialogTree dialog.Tree) {
 
 		logger.Get("main").Infof("new message from %v: %v", update.Message.From.UserName, update.Message.Text)
 
-		dialogTreeProcessor.RunNodeHandler(nextDialogNode, update.Message, bot.API)
+		go dialogTreeProcessor.RunNodeHandler(nextDialogNode, update.Message, bot.API)
 
 	}
 }
