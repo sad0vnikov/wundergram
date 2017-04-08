@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/sad0vnikov/wundergram/logger"
 	"github.com/sad0vnikov/wundergram/storage/tokens"
 	"github.com/sad0vnikov/wundergram/util"
 )
@@ -47,12 +48,19 @@ func AuthorizeUser(userID int, authCode string) error {
 		return errors.New("didn't manage to get access token from Wunderlist")
 	}
 
-	return tokens.Put(userID, token)
+	logger.Get("main").Infof("saved token for user %v", userID)
+	err = tokens.Put(userID, token)
+	if err != nil {
+		logger.Get("main").Errorf("error saving user token: %v", err)
+	}
+
+	return err
 }
 
 //IsUserAuthorized returns is user with given ID is authorized in Wunderlist
 func IsUserAuthorized(userID int) (bool, error) {
 	token, err := tokens.Get(userID)
+
 	if err != nil {
 		return false, err
 	}
