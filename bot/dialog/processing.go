@@ -32,6 +32,10 @@ func (processor *TreeProcessor) GetNodeToMoveIn(msg *tgbotapi.Message, bot *tgbo
 	messageWords := strings.Split(msgText, " ")
 
 	curNode := processor.findCurrentNodeForUser(msg.From.ID)
+	if len(curNode.Children) == 0 {
+		curNode = processor.tree.Root
+	}
+
 	var nodeToMoveIn *TreeNode
 	nodeToMoveIn = findNodeByKeywords(curNode, processor.tree.Root, messageWords)
 	if nodeToMoveIn == nil {
