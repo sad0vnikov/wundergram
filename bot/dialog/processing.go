@@ -32,14 +32,15 @@ func (processor *TreeProcessor) GetNodeToMoveIn(msg *tgbotapi.Message, bot *tgbo
 	messageWords := strings.Split(msgText, " ")
 
 	curNode := processor.findCurrentNodeForUser(msg.From.ID)
-	if len(curNode.Children) == 0 {
-		curNode = processor.tree.Root
-	}
 
 	var nodeToMoveIn *TreeNode
 	nodeToMoveIn = findNodeByKeywords(curNode, processor.tree.Root, messageWords)
 	if nodeToMoveIn == nil {
 		nodeToMoveIn = findNodeByRegex(curNode, processor.tree.Root, msgText)
+	}
+
+	if len(curNode.Children) == 0 && nodeToMoveIn == nil {
+		return processor.tree.Root
 	}
 
 	if nodeToMoveIn == nil {
@@ -64,7 +65,7 @@ func findNodeByKeywords(curNode *TreeNode, treeRooteNode *TreeNode, messageWords
 			return treeRooteNode
 		}
 
-		if curNode.Parent != nil && checkNodeHasKeyword(curNode.Parent, w) {
+		if curNode.Parent != nil && (checkNodeHasGoBackKeyword(curNode, w) || checkNodeHasKeyword(curNode.Parent, w)) {
 			return curNode.Parent
 		}
 
@@ -79,6 +80,10 @@ func findNodeByKeywords(curNode *TreeNode, treeRooteNode *TreeNode, messageWords
 
 func checkNodeHasKeyword(node *TreeNode, keyword string) bool {
 	return node.keywords[keyword] == true
+}
+
+func checkNodeHasGoBackKeyword(node *TreeNode, keyword string) bool {
+	return node.goBackKeywords[keyword] == true
 }
 
 func findNodeByRegex(curNode *TreeNode, treeRootNode *TreeNode, message string) *TreeNode {

@@ -66,4 +66,5 @@ func makeKeywordsMap(keywords []string) map[string]bool {
 //AddChild adds a child to the node
 func (node *TreeNode) AddChild(childNode *TreeNode) {
 	node.Children = append(node.Children, childNode)
+	childNode.Parent = node
 }
