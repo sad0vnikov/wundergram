@@ -27,5 +27,5 @@ func showTodayTasksCommand(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, messageText)
-	bot.Send(msg)
+	sendMessageWithLogging(bot, msg)
 }

@@ -40,7 +40,8 @@ func sendAuthorizedMessage(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
 	msg.ReplyMarkup = keyboard
 
-	bot.Send(msg)
+	sendMessageWithLogging(bot, msg)
+
 }
 
 func startRespondNeedAuth(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
@@ -51,18 +52,18 @@ func startRespondNeedAuth(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
 	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(false)
 
-	bot.Send(msg)
+	sendMessageWithLogging(bot, msg)
+
 }
 
 func startDoAuth(message *tgbotapi.Message, bot *tgbotapi.BotAPI, code string) {
 	err := wunderlist.AuthorizeUser(message.From.ID, code)
 
-	msgText := "You were successfully authenticated. Now I can send Wunderlist reminders"
 	if err != nil {
-		msgText = "Some error occured during authorization. Please try again later."
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry! Some error has occured")
+		bot.Send(msg)
+		return
 	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
-	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(false)
-	bot.Send(msg)
+	sendAuthorizedMessage(message, bot)
 }
