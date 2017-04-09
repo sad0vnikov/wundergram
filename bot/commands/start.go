@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 
+	"github.com/sad0vnikov/wundergram/storage/timezones"
+	"github.com/sad0vnikov/wundergram/util"
 	"github.com/sad0vnikov/wundergram/wunderlist"
 	"gopkg.in/telegram-bot-api.v4"
 )
@@ -10,13 +12,23 @@ import (
 //start is an initial bot command handler
 func start(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
+	if message.Location != nil {
+		saveUserLocation(message, bot)
+	}
+
 	isAuthorized, err := wunderlist.IsUserAuthorized(message.From.ID)
 	if err != nil {
 		sendErrorResponse(message.Chat.ID, bot)
 		return
 	}
 
-	if isAuthorized {
+	hasTimezoneSettings := timezones.UserHasLocation(message.From.ID)
+	if isAuthorized && !hasTimezoneSettings {
+		sendNeedLocationMessage(message, bot)
+		return
+	}
+
+	if isAuthorized && hasTimezoneSettings {
 		sendAuthorizedMessage(message, bot)
 		return
 	}
@@ -40,6 +52,28 @@ func sendAuthorizedMessage(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
 	msg.ReplyMarkup = keyboard
 
+	sendMessageWithLogging(bot, msg)
+
+}
+
+func sendNeedLocationMessage(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	msg := tgbotapi.NewMessage(
+		message.Chat.ID,
+		"I also need to know your location to detect your timezone. I can't send you notifications just in time without knowing your timezone",
+	)
+	msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButtonLocation("📍 Send location"),
+		),
+	)
+
+	sendMessageWithLogging(bot, msg)
+}
+
+func saveUserLocation(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	userTimezone := util.GetTimezoneByCoord(message.Location.Latitude, message.Location.Longitude)
+	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Thank you! Your timezone is %v", userTimezone.String()))
+	timezones.Put(message.From.ID, userTimezone)
 	sendMessageWithLogging(bot, msg)
 
 }
