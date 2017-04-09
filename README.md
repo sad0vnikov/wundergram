@@ -6,6 +6,8 @@ Just send */start* message, authorize in Wunderlist and send the bot your locati
 
 Wundergram uses 'Due date' task field to detect if the task should be done today.
 
+You can follow this link: [https://t.me/wundergram_bot](t.me/wundergram_bot) to try Wundergram in action
+
 ## CHANGELOG:
 
 ### v0.1.1
