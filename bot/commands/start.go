@@ -72,7 +72,7 @@ func sendNeedLocationMessage(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 func saveUserLocation(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	userTimezone := util.GetTimezoneByCoord(message.Location.Latitude, message.Location.Longitude)
-	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Thank you! Your timezone is %v", userTimezone.String()))
+	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Thank you! Your timezone is set to %v", userTimezone.String()))
 	timezones.Put(message.From.ID, userTimezone)
 	sendMessageWithLogging(bot, msg)
 
@@ -99,5 +99,5 @@ func startDoAuth(message *tgbotapi.Message, bot *tgbotapi.BotAPI, code string) {
 		return
 	}
 
-	sendAuthorizedMessage(message, bot)
+	start(message, bot)
 }

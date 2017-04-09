@@ -25,14 +25,14 @@ var dailyNotificationsBucketName = []byte("daily_notifications")
 //CheckIsTimeToSend returns true if a time for sending notification already came
 func (notification DailyNotificationConfig) CheckIsTimeToSend(currentTime time.Time) bool {
 	currentTimestamp := currentTime.Unix()
-	dayStart := util.GetDayStart(currentTime).Unix()
+	dayStart := util.GetDayStart(currentTime, currentTime.Location()).Unix()
 	currentDayOffset := currentTimestamp - dayStart
 	return currentDayOffset >= int64(notification.NotificationTimestamp)
 }
 
 //CheckWasSentToday returns true if notification was already sent today
 func (notification DailyNotificationConfig) CheckWasSentToday(currentTime time.Time) bool {
-	dayStart := util.GetDayStart(currentTime).Unix()
+	dayStart := util.GetDayStart(currentTime, currentTime.Location()).Unix()
 
 	return notification.LastTimeActivated >= dayStart
 }

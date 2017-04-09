@@ -6,6 +6,7 @@ import (
 	"github.com/sad0vnikov/wundergram/bot"
 	"github.com/sad0vnikov/wundergram/logger"
 	"github.com/sad0vnikov/wundergram/storage/daily_notifications"
+	"github.com/sad0vnikov/wundergram/storage/timezones"
 	"github.com/sad0vnikov/wundergram/wunderlist/wservice"
 	"gopkg.in/telegram-bot-api.v4"
 )
@@ -31,8 +32,14 @@ func checkDailyNotifications(bot *tgbotapi.BotAPI) {
 
 	logger.Get("main").Debugf("found %v notification configs: ", len(notifications), notifications)
 
-	curTime := time.Now()
 	for _, n := range notifications {
+		userLocation, err := timezones.Get(n.UserID)
+		if err != nil || userLocation == nil {
+			logger.Get("main").Noticef("error getting timezone for user %v, assuming UTC. error: %v", n.UserID, err)
+			userLocation = time.UTC
+		}
+
+		curTime := time.Now().In(userLocation)
 		if n.CheckIsTimeToSend(curTime) && !n.CheckWasSentToday(curTime) {
 			logger.Get("main").Debugf("sending notification for %+v", n)
 			sendNotificationForUser(n, bot)
