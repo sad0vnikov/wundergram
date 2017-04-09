@@ -46,6 +46,7 @@ func enableDailyNotifications(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	err := daily_notifications.EnableNotificationsForUser(userID, message.Chat.ID, notificationTime)
 	if err == nil {
 		msg := tgbotapi.NewMessage(message.Chat.ID, "Ok. I'll send you a daily notification at "+notificationTime)
+		msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 		sendMessageWithLogging(bot, msg)
 	}
 
